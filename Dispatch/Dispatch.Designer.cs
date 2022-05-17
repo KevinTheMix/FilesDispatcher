@@ -28,14 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tbxInFolder = new System.Windows.Forms.TextBox();
+            this.tbxInDirectory = new System.Windows.Forms.TextBox();
             this.btnBrowseInFolder = new System.Windows.Forms.Button();
-            this.inFolderBrowser = new System.Windows.Forms.FolderBrowserDialog();
-            this.btnRun = new System.Windows.Forms.Button();
+            this.inDirectoryBrowser = new System.Windows.Forms.FolderBrowserDialog();
+            this.btnNext = new System.Windows.Forms.Button();
             this.btnMoveDelete = new System.Windows.Forms.Button();
-            this.tbxOutFolder = new System.Windows.Forms.TextBox();
+            this.tbxOutDirectory = new System.Windows.Forms.TextBox();
             this.btnBrowseOutFolder = new System.Windows.Forms.Button();
-            this.outFolderBrowser = new System.Windows.Forms.FolderBrowserDialog();
+            this.outDirectoryBrowser = new System.Windows.Forms.FolderBrowserDialog();
             this.btnMoveOut = new System.Windows.Forms.Button();
             this.lblSessionCount = new System.Windows.Forms.Label();
             this.lblTodayCount = new System.Windows.Forms.Label();
@@ -51,12 +51,12 @@
             // 
             // tbxInFolder
             // 
-            this.tbxInFolder.Font = new System.Drawing.Font("Segoe UI", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tbxInFolder.Location = new System.Drawing.Point(12, 12);
-            this.tbxInFolder.Name = "tbxInFolder";
-            this.tbxInFolder.ReadOnly = true;
-            this.tbxInFolder.Size = new System.Drawing.Size(186, 20);
-            this.tbxInFolder.TabIndex = 1;
+            this.tbxInDirectory.Font = new System.Drawing.Font("Segoe UI", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.tbxInDirectory.Location = new System.Drawing.Point(12, 12);
+            this.tbxInDirectory.Name = "tbxInFolder";
+            this.tbxInDirectory.ReadOnly = true;
+            this.tbxInDirectory.Size = new System.Drawing.Size(186, 20);
+            this.tbxInDirectory.TabIndex = 1;
             // 
             // btnBrowseInFolder
             // 
@@ -70,14 +70,14 @@
             // 
             // btnRun
             // 
-            this.btnRun.Enabled = false;
-            this.btnRun.Location = new System.Drawing.Point(204, 69);
-            this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(63, 43);
-            this.btnRun.TabIndex = 7;
-            this.btnRun.Text = "Start!";
-            this.btnRun.UseVisualStyleBackColor = true;
-            this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
+            this.btnNext.Enabled = false;
+            this.btnNext.Location = new System.Drawing.Point(204, 69);
+            this.btnNext.Name = "btnRun";
+            this.btnNext.Size = new System.Drawing.Size(63, 43);
+            this.btnNext.TabIndex = 7;
+            this.btnNext.Text = "Start!";
+            this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             // 
             // btnMoveDelete
             // 
@@ -94,12 +94,12 @@
             // 
             // tbxOutFolder
             // 
-            this.tbxOutFolder.Font = new System.Drawing.Font("Segoe UI", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tbxOutFolder.Location = new System.Drawing.Point(12, 41);
-            this.tbxOutFolder.Name = "tbxOutFolder";
-            this.tbxOutFolder.ReadOnly = true;
-            this.tbxOutFolder.Size = new System.Drawing.Size(186, 20);
-            this.tbxOutFolder.TabIndex = 3;
+            this.tbxOutDirectory.Font = new System.Drawing.Font("Segoe UI", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.tbxOutDirectory.Location = new System.Drawing.Point(12, 41);
+            this.tbxOutDirectory.Name = "tbxOutFolder";
+            this.tbxOutDirectory.ReadOnly = true;
+            this.tbxOutDirectory.Size = new System.Drawing.Size(186, 20);
+            this.tbxOutDirectory.TabIndex = 3;
             // 
             // btnBrowseOutFolder
             // 
@@ -109,7 +109,7 @@
             this.btnBrowseOutFolder.TabIndex = 4;
             this.btnBrowseOutFolder.Text = "Out";
             this.btnBrowseOutFolder.UseVisualStyleBackColor = true;
-            this.btnBrowseOutFolder.Click += new System.EventHandler(this.btnBrowseOutFolder_Click);
+            this.btnBrowseOutFolder.Click += new System.EventHandler(this.btnBrowseOutDirectory_Click);
             // 
             // btnMoveOut
             // 
@@ -237,11 +237,11 @@
             this.Controls.Add(this.lblSessionCount);
             this.Controls.Add(this.btnMoveOut);
             this.Controls.Add(this.btnBrowseOutFolder);
-            this.Controls.Add(this.tbxOutFolder);
+            this.Controls.Add(this.tbxOutDirectory);
             this.Controls.Add(this.btnMoveDelete);
-            this.Controls.Add(this.btnRun);
+            this.Controls.Add(this.btnNext);
             this.Controls.Add(this.btnBrowseInFolder);
-            this.Controls.Add(this.tbxInFolder);
+            this.Controls.Add(this.tbxInDirectory);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.KeyPreview = true;
             this.MaximizeBox = false;
@@ -254,14 +254,14 @@
         }
 
         #endregion
-        private TextBox tbxInFolder;
+        private TextBox tbxInDirectory;
         private Button btnBrowseInFolder;
-        private FolderBrowserDialog inFolderBrowser;
-        private Button btnRun;
+        private FolderBrowserDialog inDirectoryBrowser;
+        private Button btnNext;
         private Button btnMoveDelete;
-        private TextBox tbxOutFolder;
+        private TextBox tbxOutDirectory;
         private Button btnBrowseOutFolder;
-        private FolderBrowserDialog outFolderBrowser;
+        private FolderBrowserDialog outDirectoryBrowser;
         private Button btnMoveOut;
         private Label lblSessionCount;
         private Label lblTodayCount;
