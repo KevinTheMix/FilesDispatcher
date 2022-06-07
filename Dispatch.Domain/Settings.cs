@@ -8,7 +8,7 @@
         public const string OutDirectory = @"V:\@ Sort\@ Very Good";
         public const string StatsFolder = "- Dispatch Stats";
         public const string OriginalCountFileName = "original_count.txt";
-        public const int MaxSkipCount = 40;
+        public const int MaxSkipCount = 50;
         public const int MaxMoveRetriesCount = 10;
         public const int TreatmentThrottleMilliseconds = 800;
     }

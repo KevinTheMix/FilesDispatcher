@@ -28,9 +28,8 @@ namespace Dispatch.Domain
         private Process? process;
         private string? inDirectory;
         private string? outDirectory;
-        private string? currentFilePath;
         private string? countsFilePath;
-        private int nextedCount;
+        private int skipCount;
         #endregion
 
         #region Properties
@@ -40,6 +39,12 @@ namespace Dispatch.Domain
         public event Action? EndReached;
 
         public Dictionary<DateTime, MoveCount>? Counts { get; set; }
+        public DateTime Today { get; set; }
+        public MoveCount SessionCount { get; set; }
+        public MoveCount WeekCount { get; set; }
+        public MoveCount MonthCount { get; set; }
+        public MoveCount YearCount { get; set; }
+        public string? CurrentFilePath { get; set; }
         /// <summary>
         /// Total number of files to sort, initialized once by browser the "In" directory recursively on the very first run.
         /// </summary>
@@ -48,16 +53,14 @@ namespace Dispatch.Domain
         /// Number of files currently in "In" folder itself (i.e. non-recursively).
         /// </summary>
         public int inFolderFilesCount { get; set; }
-        public DateTime Today { get; set; }
-        public MoveCount SessionCount { get; set; }
-        public MoveCount WeekCount { get; set; }
-        public MoveCount MonthCount { get; set; }
-        public MoveCount YearCount { get; set; }
         #endregion
 
         #region Constructor
         public Engine(string inDirectory, string outDirectory)
         {
+            this.inDirectory = inDirectory;
+            this.outDirectory = outDirectory;
+
             this.Today = DateTime.Today;    // So the whole program agrees on what the current day is.
             this.SessionCount = new MoveCount();
             this.WeekCount = new MoveCount();
@@ -68,11 +71,6 @@ namespace Dispatch.Domain
             this.processStartInfo.FileName = ExplorerProcessFileName;
             this.processStartInfo.WindowStyle = ProcessWindowStyle.Minimized;
             this.processStartInfo.CreateNoWindow = true;
-
-            this.inDirectory = inDirectory;
-            this.outDirectory = outDirectory;
-            InitializeCounts(this.inDirectory);
-
             Task.Run(() => ConsumeFileToMove());
         }
         #endregion
@@ -93,19 +91,19 @@ namespace Dispatch.Domain
                 }
             }
         }
-        public bool IsPlaying() => !String.IsNullOrEmpty(this.currentFilePath);
-        private void InitializeCounts(string inDirectory)
+        public bool IsPlaying() => !String.IsNullOrEmpty(this.CurrentFilePath);
+        public void InitializeCounts()
         {
-            string statsDirectory = Path.Combine(inDirectory, Settings.StatsFolder);
+            string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
             if (!Directory.Exists(statsDirectory))
             {
                 Directory.CreateDirectory(statsDirectory);
             }
 
-            this.OriginalFilesCount = ReadOriginalCount(inDirectory, statsDirectory);
-            this.inFolderFilesCount = Directory.EnumerateFiles(inDirectory, "*.*", SearchOption.TopDirectoryOnly).Count();
+            this.OriginalFilesCount = ReadOriginalCount(this.inDirectory, statsDirectory);
+            this.inFolderFilesCount = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Count();
             this.SessionCount.Reset();
-            this.nextedCount = 0;
+            this.skipCount = -1;  // -1 accounts for first increment performed regardless (see method Next()).
 
             this.countsFilePath = Path.Combine(statsDirectory, $"{this.Today.Year}.txt");
             if (File.Exists(countsFilePath))
@@ -134,7 +132,6 @@ namespace Dispatch.Domain
             }
 
             this.CountsUpdated?.Invoke();
-            this.SkipCountUpdated?.Invoke(this, new SkipArgs { Count = 0 });
         }
         private int ReadOriginalCount(string inDirectory, string statsDirectory)
         {
@@ -175,8 +172,13 @@ namespace Dispatch.Domain
         }
         private int CalculatePositiveModulo(int i, int n) => (i % n + n) % n;
 
-        public void Next()
+        public void Next(bool isSkipping = true)
         {
+            if (isSkipping && this.skipCount >= Settings.MaxSkipCount)
+            {
+                return;
+            }
+
             string? nextFilePath = GetNextRandomFilePath();
             if (String.IsNullOrEmpty(nextFilePath))
             {
@@ -184,32 +186,30 @@ namespace Dispatch.Domain
                 return;
             }
 
-            if (IsPlaying())
-            {
-                ++this.nextedCount; // It's only considered "nexted" (i.e. a skip) if the app was already running (otherwise, it's just the initial "Start!").
-            }
-            SkipCountUpdated?.Invoke(this, new SkipArgs { Count = Settings.MaxSkipCount - this.nextedCount });
-
-            this.currentFilePath = nextFilePath;
+            this.CurrentFilePath = nextFilePath;
             Run();
+
+            if (isSkipping)
+            {
+                SetSkipCount(++this.skipCount);
+            }
         }
         public void Move()
         {
-            if (!String.IsNullOrEmpty(this.currentFilePath))
+            if (!String.IsNullOrEmpty(this.CurrentFilePath))
             {
-                this.filesToMove.Add(new FileMove { Action = MoveAction.Keep, Path = this.currentFilePath });
-                Next();
-
-                // A little treat for being decisive ;)
-                this.SkipCountUpdated?.Invoke(this, new SkipArgs { Count = Settings.MaxSkipCount - --this.nextedCount });
+                this.filesToMove.Add(new FileMove { Action = MoveAction.Keep, Path = this.CurrentFilePath });
+                Next(false);
+                SetSkipCount(--this.skipCount);   // A little treat for being decisive ;)
             }
         }
+
         public void Delete()
         {
-            if (!String.IsNullOrEmpty(this.currentFilePath))
+            if (!String.IsNullOrEmpty(this.CurrentFilePath))
             {
-                this.filesToMove.Add(new FileMove { Action = MoveAction.Delete, Path = this.currentFilePath });
-                Next();
+                this.filesToMove.Add(new FileMove { Action = MoveAction.Delete, Path = this.CurrentFilePath });
+                Next(false);
             }
         }
         public void Run()
@@ -217,7 +217,7 @@ namespace Dispatch.Domain
             Task.Run(() =>
             {
                 // See https://stackoverflow.com/a/240610
-                this.processStartInfo.Arguments = $"\"{this.currentFilePath}\"";
+                this.processStartInfo.Arguments = $"\"{this.CurrentFilePath}\"";
                 this.process = Process.Start(this.processStartInfo);
                 if (this.process != null)
                 {
@@ -289,6 +289,10 @@ namespace Dispatch.Domain
             this.YearCount.Increment(action);
 
             this.CountsUpdated?.Invoke();
+        }
+        private void SetSkipCount(int skipCount)
+        {
+            this.SkipCountUpdated?.Invoke(this, new SkipArgs { Count = Settings.MaxSkipCount - skipCount });
         }
         #endregion
     }
