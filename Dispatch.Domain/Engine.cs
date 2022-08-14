@@ -19,7 +19,8 @@ namespace Dispatch.Domain
     {
         public string? Message { get; set; }
     }
-    public class Engine
+
+    public class Engine : IEngine
     {
         #region Variables
         private const string ExplorerProcessFileName = "explorer";
@@ -66,6 +67,7 @@ namespace Dispatch.Domain
             this.WeekCount = new MoveCount();
             this.MonthCount = new MoveCount();
             this.YearCount = new MoveCount();
+            InitializeCounts(); // Has to be called after the previous DateTime initializations.
 
             this.processStartInfo = new ProcessStartInfo();
             this.processStartInfo.FileName = ExplorerProcessFileName;
@@ -76,23 +78,116 @@ namespace Dispatch.Domain
         #endregion
 
         #region Methods
-        public void SaveStats()
+        public async Task Next(bool isSkipping = true)
         {
-            if (String.IsNullOrEmpty(this.countsFilePath) || this.Counts == null)
+            if (isSkipping && this.skipCount >= Settings.MaxSkipCount)
             {
                 return;
             }
 
-            using (StreamWriter countsFile = new StreamWriter(this.countsFilePath, false))
+            string? nextFilePath = GetNextRandomFilePath();
+            if (String.IsNullOrEmpty(nextFilePath))
             {
-                foreach (var kvp in this.Counts)
-                {
-                    countsFile.WriteLine($"{kvp.Key.ToString("MM.dd")}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
-                }
+                EndReached?.Invoke();
+                return;
+            }
+
+            this.CurrentFilePath = nextFilePath;
+            await RunCurrent();
+
+            if (isSkipping)
+            {
+                SetSkipCount(++this.skipCount);
             }
         }
-        public bool IsPlaying() => !String.IsNullOrEmpty(this.CurrentFilePath);
-        public void InitializeCounts()
+        public async Task RunCurrent()
+        {
+            await Task.Run(() =>
+            {
+                // See https://stackoverflow.com/a/240610
+                this.processStartInfo.Arguments = $"\"{this.CurrentFilePath}\"";
+                this.process = Process.Start(this.processStartInfo);
+                if (this.process != null)
+                {
+                    this.process.WaitForExit();
+                    //exitCode = this.process.ExitCode;
+
+                    //if (!Process.GetProcessesByName(VlcProcessName).Any())
+                    //{
+                    //    DisableButtons();
+                    //}
+                }
+            });
+        }
+        public async Task Move()
+        {
+            if (!String.IsNullOrEmpty(this.CurrentFilePath))
+            {
+                this.filesToMove.Add(new FileMove { Action = MoveAction.Keep, Path = this.CurrentFilePath });
+                await Next(false);
+                SetSkipCount(--this.skipCount);   // A little treat for being decisive ;)
+            }
+        }
+        public async Task Delete()
+        {
+            if (!String.IsNullOrEmpty(this.CurrentFilePath))
+            {
+                this.filesToMove.Add(new FileMove { Action = MoveAction.Delete, Path = this.CurrentFilePath });
+                await Next(false);
+            }
+        }
+
+        private static int CalculatePositiveModulo(int i, int n) => (i % n + n) % n;
+        private static int ReadOriginalCount(string inDirectory, string statsDirectory)
+        {
+            string originalCountFilePath = Path.Combine(statsDirectory, Settings.OriginalCountFileName);
+            if (File.Exists(originalCountFilePath))
+            {
+                return Int32.Parse(File.ReadAllText(originalCountFilePath));
+            }
+            else
+            {
+                int originalCount = Directory.EnumerateFiles(inDirectory, "*.*", SearchOption.AllDirectories).Count();
+                File.WriteAllText(originalCountFilePath, originalCount.ToString());
+                return originalCount;
+            }
+        }
+        private Dictionary<DateTime, MoveCount> ParseCounts(string[] countLines)
+        {
+            var countsByDay = new Dictionary<DateTime, MoveCount>();
+            foreach (string countLine in countLines)
+            {
+                if (String.IsNullOrEmpty(countLine))
+                {
+                    continue;
+                }
+
+                string[] lineFrags = countLine.Split("\t");
+                if (lineFrags.Length != 3)
+                {
+                    continue;
+                }
+
+                DateTime date = DateTime.ParseExact($"{Today.Year}.{lineFrags[0]}", "yyyy.MM.dd", System.Globalization.CultureInfo.CurrentCulture);
+                int keptCount = Int32.Parse(lineFrags[1]);
+                int deletedCount = Int32.Parse(lineFrags[2]);
+                countsByDay.Add(date, new MoveCount { KeptCount = keptCount, DeletedCount = deletedCount });
+            }
+            return countsByDay;
+        }
+        private string? GetNextRandomFilePath()
+        {
+            IEnumerable<string> remainingsNotCurrentlyBeingMoved = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Where(remaining => this.filesToMove.All(move => remaining != move.Path));
+            if (!remainingsNotCurrentlyBeingMoved.Any())
+            {
+                return null;
+            }
+
+            Random random = new Random();
+            int chosenMp3Index = random.Next(1, remainingsNotCurrentlyBeingMoved.Count());
+            return remainingsNotCurrentlyBeingMoved.ElementAt(chosenMp3Index - 1);
+        }
+        private void InitializeCounts()
         {
             string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
             if (!Directory.Exists(statsDirectory))
@@ -133,117 +228,6 @@ namespace Dispatch.Domain
 
             this.CountsUpdated?.Invoke();
         }
-        private int ReadOriginalCount(string inDirectory, string statsDirectory)
-        {
-            string originalCountFilePath = Path.Combine(statsDirectory, Settings.OriginalCountFileName);
-            if (File.Exists(originalCountFilePath))
-            {
-                return Int32.Parse(File.ReadAllText(originalCountFilePath));
-            }
-            else
-            {
-                int originalCount = Directory.EnumerateFiles(inDirectory, "*.*", SearchOption.AllDirectories).Count();
-                File.WriteAllText(originalCountFilePath, originalCount.ToString());
-                return originalCount;
-            }
-        }
-        private Dictionary<DateTime, MoveCount> ParseCounts(string[] countLines)
-        {
-            var countsByDay = new Dictionary<DateTime, MoveCount>();
-            foreach (string countLine in countLines)
-            {
-                if (String.IsNullOrEmpty(countLine))
-                {
-                    continue;
-                }
-
-                string[] lineFrags = countLine.Split("\t");
-                if (lineFrags.Length != 3)
-                {
-                    continue;
-                }
-
-                DateTime date = DateTime.ParseExact($"{Today.Year}.{lineFrags[0]}", "yyyy.MM.dd", System.Globalization.CultureInfo.CurrentCulture);
-                int keptCount = Int32.Parse(lineFrags[1]);
-                int deletedCount = Int32.Parse(lineFrags[2]);
-                countsByDay.Add(date, new MoveCount { KeptCount = keptCount, DeletedCount = deletedCount });
-            }
-            return countsByDay;
-        }
-        private int CalculatePositiveModulo(int i, int n) => (i % n + n) % n;
-
-        public void Next(bool isSkipping = true)
-        {
-            if (isSkipping && this.skipCount >= Settings.MaxSkipCount)
-            {
-                return;
-            }
-
-            string? nextFilePath = GetNextRandomFilePath();
-            if (String.IsNullOrEmpty(nextFilePath))
-            {
-                EndReached?.Invoke();
-                return;
-            }
-
-            this.CurrentFilePath = nextFilePath;
-            Run();
-
-            if (isSkipping)
-            {
-                SetSkipCount(++this.skipCount);
-            }
-        }
-        public void Move()
-        {
-            if (!String.IsNullOrEmpty(this.CurrentFilePath))
-            {
-                this.filesToMove.Add(new FileMove { Action = MoveAction.Keep, Path = this.CurrentFilePath });
-                Next(false);
-                SetSkipCount(--this.skipCount);   // A little treat for being decisive ;)
-            }
-        }
-
-        public void Delete()
-        {
-            if (!String.IsNullOrEmpty(this.CurrentFilePath))
-            {
-                this.filesToMove.Add(new FileMove { Action = MoveAction.Delete, Path = this.CurrentFilePath });
-                Next(false);
-            }
-        }
-        public void Run()
-        {
-            Task.Run(() =>
-            {
-                // See https://stackoverflow.com/a/240610
-                this.processStartInfo.Arguments = $"\"{this.CurrentFilePath}\"";
-                this.process = Process.Start(this.processStartInfo);
-                if (this.process != null)
-                {
-                    this.process.WaitForExit();
-                    //exitCode = this.process.ExitCode;
-
-                    //if (!Process.GetProcessesByName(VlcProcessName).Any())
-                    //{
-                    //    DisableButtons();
-                    //}
-                }
-            });
-        }
-        private string? GetNextRandomFilePath()
-        {
-            IEnumerable<string> remainingsNotCurrentlyBeingMoved = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Where(remaining => this.filesToMove.All(move => remaining != move.Path));
-            if (!remainingsNotCurrentlyBeingMoved.Any())
-            {
-                return null;
-            }
-
-            Random random = new Random();
-            int chosenMp3Index = random.Next(1, remainingsNotCurrentlyBeingMoved.Count());
-            return remainingsNotCurrentlyBeingMoved.ElementAt(chosenMp3Index - 1);
-        }
-
         private void ConsumeFileToMove()
         {
             while (!this.filesToMove.IsCompleted)
@@ -272,11 +256,12 @@ namespace Dispatch.Domain
                 if (wasTreated)
                 {
                     IncrementCounts(fileToMove.Action);
+                    SaveStats();
                 }
                 else
                 {
                     WarningThrown?.Invoke(this,
-                        new WarningArgs { Message = $"Couln't {fileToMove.Action} file '{Path.GetFileName(fileToMove.Path)}': unable to obtain exclusive access after {Settings.MaxMoveRetriesCount} attempts" });
+                        new WarningArgs { Message = $"Couldn't {fileToMove.Action} file '{Path.GetFileName(fileToMove.Path)}': unable to obtain exclusive access after {Settings.MaxMoveRetriesCount} attempts" });
                 }
             }
         }
@@ -293,6 +278,21 @@ namespace Dispatch.Domain
         private void SetSkipCount(int skipCount)
         {
             this.SkipCountUpdated?.Invoke(this, new SkipArgs { Count = Settings.MaxSkipCount - skipCount });
+        }
+        private void SaveStats()
+        {
+            if (String.IsNullOrEmpty(this.countsFilePath) || this.Counts == null)
+            {
+                return;
+            }
+
+            using (StreamWriter countsFile = new StreamWriter(this.countsFilePath, false))
+            {
+                foreach (var kvp in this.Counts)
+                {
+                    countsFile.WriteLine($"{kvp.Key.ToString("MM.dd")}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
+                }
+            }
         }
         #endregion
     }

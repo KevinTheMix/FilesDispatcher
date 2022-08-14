@@ -7,7 +7,7 @@ namespace Dispatch
     {
         #region Variables
         private Timer buttonsReenablingTimer = new Timer() { Interval = Settings.TreatmentThrottleMilliseconds };
-        private Engine bl;
+        private IEngine bl;
         bool isStarted = false;
         #endregion
 
@@ -60,7 +60,6 @@ namespace Dispatch
             this.bl.CountsUpdated += Engine_CountsUpdated;
             this.bl.WarningThrown += Engine_WarningThrown;
             this.bl.EndReached += Engine_EndReached;
-            this.bl.InitializeCounts();
         }
         private void CleanupEngine()
         {
@@ -70,7 +69,6 @@ namespace Dispatch
                 this.bl.SkipCountUpdated -= Engine_SkipCountUpdated;
                 this.bl.EndReached -= Engine_EndReached;
                 this.bl.WarningThrown -= Engine_WarningThrown;
-                this.bl.SaveStats();
             }
         }
         #endregion
@@ -167,7 +165,7 @@ namespace Dispatch
             switch (keyData)
             {
                 case Keys.Back:
-                case Keys.Left: this.bl.Run(); break;   // Play it again, Sam.
+                case Keys.Left: this.bl.RunCurrent(); break;   // Play it again, Sam.
                 case Keys.Right: this.btnNext.PerformClick(); break;
                 case Keys.Add:
                 //case Keys.Insert:
@@ -180,9 +178,10 @@ namespace Dispatch
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        private void btnNext_Click(object sender, EventArgs e)
+        // `async void` is permitted here to make an event handler asynchronous (see https://stackoverflow.com/a/45449457/3559724).
+        private async void btnNext_Click(object sender, EventArgs e)
         {
-            this.bl.Next();
+            await this.bl.Next();
 
             if(!this.isStarted)
             {
@@ -190,16 +189,16 @@ namespace Dispatch
                 this.isStarted = true;
             }
         }
-        private void btnMoveOut_Click(object sender, EventArgs e)
+        private async void btnMoveOut_Click(object sender, EventArgs e)
         {
             DisableButtons();
-            this.bl.Move();
+            await this.bl.Move();
             this.buttonsReenablingTimer.Start();
         }
-        private void btnMoveDelete_Click(object sender, EventArgs e)
+        private async void btnMoveDelete_Click(object sender, EventArgs e)
         {
             DisableButtons();
-            this.bl.Delete();
+            await this.bl.Delete();
             this.buttonsReenablingTimer.Start();
         }
         #endregion
