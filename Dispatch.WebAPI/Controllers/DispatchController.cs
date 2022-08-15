@@ -5,12 +5,17 @@ using Microsoft.Extensions.Options;
 
 namespace Dispatch.WebAPI.Controllers
 {
+    // K: To accept external connections (from Android) I had to open a port in Windows firewall rules (easy to do),
+    // and specify this computer's IP instead of just "localhost" in either launchSettings.json or applicationhost.config
+    // See https://stackoverflow.com/a/8987482/3559724
+
+    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-6.0
     // https://docs.microsoft.com/en-us/aspnet/core/tutorials/first-mvc-app/controller-methods-views?view=aspnetcore-6.0
     // Don't forget the `[action]` or you're going to have a bad time (see https://stackoverflow.com/a/61561512/3559724)
     [ApiController] [Route("api/[controller]/[action]")]
     public class DispatchController : ControllerBase
     {
-        private readonly ILogger<DispatchController> _logger;
+        //private readonly ILogger<DispatchController> _logger;
         private readonly IEngine bl;
 
         public DispatchController(ILogger<WeatherForecastController> logger, IEngine bl)

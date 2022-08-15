@@ -1,5 +1,6 @@
 using Dispatch.Domain;
 using Dispatch.WebAPI.Models;
+using Microsoft.AspNetCore;
 
 namespace Dispatch.WebAPI
 {
@@ -9,11 +10,23 @@ namespace Dispatch.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Inspired by https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-6.0
+            // v1: Does not work:
+            //WebHost.CreateDefaultBuilder(args).UseUrls("http://192.168.1.6:5000");
+            // v2: Causes error:
+            //builder.Host.ConfigureWebHost((configure) =>
+            //{
+            //    configure.UseUrls("http://192.168.1.6:5000");
+            //});
+            // v3: works!
+            builder.WebHost.UseUrls("http://192.168.1.6:5000");
+
             // Add services to the container.
 
-            // Koko: read & inject custom section
+            // v1: read & inject a custom config section.
             //builder.Services.Configure<DispatchSection>(builder.Configuration.GetSection("Dispatch"));
-            DispatchSection dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();
+            // v2: construct a BL with a custom config section, and inject it instead.
+            DispatchSection dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();  // See https://stackoverflow.com/a/70771643/3559724
             builder.Services.AddSingleton<IEngine>(new Engine(dispatchSection.InDirectory, dispatchSection.OutDirectory));
 
             builder.Services.AddControllers();

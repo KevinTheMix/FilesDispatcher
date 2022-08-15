@@ -60,6 +60,7 @@ namespace Dispatch
             this.bl.CountsUpdated += Engine_CountsUpdated;
             this.bl.WarningThrown += Engine_WarningThrown;
             this.bl.EndReached += Engine_EndReached;
+            RefreshCountLabels();
         }
         private void CleanupEngine()
         {
