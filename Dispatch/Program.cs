@@ -1,4 +1,4 @@
-namespace Dispatch
+namespace Dispatch.GUI
 {
     internal static class Program
     {
@@ -11,7 +11,7 @@ namespace Dispatch
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new Dispatch());
+            Application.Run(new DispatchWindow());
         }
     }
 }

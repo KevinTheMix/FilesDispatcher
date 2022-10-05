@@ -1,4 +1,4 @@
-namespace Dispatch.WebAPI
+namespace Dispatch.WebAPI.Models
 {
     public class WeatherForecast
     {

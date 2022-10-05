@@ -1,6 +1,6 @@
-﻿namespace Dispatch
+﻿namespace Dispatch.GUI
 {
-    partial class Dispatch
+    partial class DispatchWindow
     {
         /// <summary>
         ///  Required designer variable.
@@ -67,7 +67,7 @@
             this.btnBrowseInFolder.TabIndex = 2;
             this.btnBrowseInFolder.Text = "In";
             this.btnBrowseInFolder.UseVisualStyleBackColor = true;
-            this.btnBrowseInFolder.Click += new System.EventHandler(this.btnBrowseInFolder_Click);
+            this.btnBrowseInFolder.Click += new System.EventHandler(this.BtnBrowseInFolder_Click);
             // 
             // btnNext
             // 
@@ -78,20 +78,20 @@
             this.btnNext.TabIndex = 7;
             this.btnNext.Text = "Start!";
             this.btnNext.UseVisualStyleBackColor = true;
-            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
+            this.btnNext.Click += new System.EventHandler(this.BtnNext_Click);
             // 
             // btnMoveDelete
             // 
-            this.btnMoveDelete.BackColor = System.Drawing.Color.Gray;
+            this.btnMoveDelete.BackColor = System.Drawing.Color.Coral;
             this.btnMoveDelete.Enabled = false;
-            this.btnMoveDelete.ForeColor = System.Drawing.Color.Silver;
+            this.btnMoveDelete.ForeColor = System.Drawing.Color.Orange;
             this.btnMoveDelete.Location = new System.Drawing.Point(92, 67);
             this.btnMoveDelete.Name = "btnMoveDelete";
             this.btnMoveDelete.Size = new System.Drawing.Size(70, 43);
             this.btnMoveDelete.TabIndex = 6;
             this.btnMoveDelete.Text = "Delete";
             this.btnMoveDelete.UseVisualStyleBackColor = false;
-            this.btnMoveDelete.Click += new System.EventHandler(this.btnMoveDelete_Click);
+            this.btnMoveDelete.Click += new System.EventHandler(this.BtnMoveDelete_Click);
             // 
             // tbxOutDirectory
             // 
@@ -110,11 +110,11 @@
             this.btnBrowseOutFolder.TabIndex = 4;
             this.btnBrowseOutFolder.Text = "Out";
             this.btnBrowseOutFolder.UseVisualStyleBackColor = true;
-            this.btnBrowseOutFolder.Click += new System.EventHandler(this.btnBrowseOutDirectory_Click);
+            this.btnBrowseOutFolder.Click += new System.EventHandler(this.BtnBrowseOutDirectory_Click);
             // 
             // btnMoveOut
             // 
-            this.btnMoveOut.BackColor = System.Drawing.Color.Green;
+            this.btnMoveOut.BackColor = System.Drawing.Color.PaleGreen;
             this.btnMoveOut.Enabled = false;
             this.btnMoveOut.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnMoveOut.ForeColor = System.Drawing.Color.MediumSeaGreen;
@@ -124,7 +124,7 @@
             this.btnMoveOut.TabIndex = 5;
             this.btnMoveOut.Text = "Very Good";
             this.btnMoveOut.UseVisualStyleBackColor = false;
-            this.btnMoveOut.Click += new System.EventHandler(this.btnMoveOut_Click);
+            this.btnMoveOut.Click += new System.EventHandler(this.BtnMoveOut_Click);
             // 
             // lblSessionCount
             // 
@@ -229,9 +229,9 @@
             this.btnSelectFile.TabIndex = 18;
             this.btnSelectFile.Text = "Open File";
             this.btnSelectFile.UseVisualStyleBackColor = true;
-            this.btnSelectFile.Click += new System.EventHandler(this.btnSelectFile_Click);
+            this.btnSelectFile.Click += new System.EventHandler(this.BtnSelectFile_Click);
             // 
-            // Dispatch
+            // DispatchWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -257,7 +257,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.KeyPreview = true;
             this.MaximizeBox = false;
-            this.Name = "Dispatch";
+            this.Name = "DispatchWindow";
             this.Text = "Dispatch";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Dispatch_FormClosed);
             this.ResumeLayout(false);

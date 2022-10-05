@@ -24,11 +24,11 @@ namespace Dispatch.Domain
     {
         #region Variables
         private const string ExplorerProcessFileName = "explorer";
-        private BlockingCollection<FileMove> filesToMove = new BlockingCollection<FileMove>(1);
-        private ProcessStartInfo processStartInfo;
+        private readonly BlockingCollection<FileMove> filesToMove = new(1);
+        private readonly ProcessStartInfo processStartInfo;
+        private readonly string? inDirectory;
+        private readonly string? outDirectory;
         private Process? process;
-        private string? inDirectory;
-        private string? outDirectory;
         private string? countsFilePath;
         private int skipCount;
         #endregion
@@ -183,7 +183,7 @@ namespace Dispatch.Domain
                 return null;
             }
 
-            Random random = new Random();
+            Random random = new();
             int chosenMp3Index = random.Next(1, remainingsNotCurrentlyBeingMoved.Count());
             return remainingsNotCurrentlyBeingMoved.ElementAt(chosenMp3Index - 1);
         }
@@ -286,12 +286,10 @@ namespace Dispatch.Domain
                 return;
             }
 
-            using (StreamWriter countsFile = new StreamWriter(this.countsFilePath, false))
+            using StreamWriter countsFile = new(this.countsFilePath, false);
+            foreach (var kvp in this.Counts)
             {
-                foreach (var kvp in this.Counts)
-                {
-                    countsFile.WriteLine($"{kvp.Key.ToString("MM.dd")}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
-                }
+                countsFile.WriteLine($"{kvp.Key:MM.dd}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
             }
         }
         #endregion

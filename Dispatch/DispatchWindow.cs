@@ -1,18 +1,18 @@
 using Dispatch.Domain;
 using Timer = System.Windows.Forms.Timer;
 
-namespace Dispatch
+namespace Dispatch.GUI
 {
-    public partial class Dispatch : Form
+    public partial class DispatchWindow : Form
     {
         #region Variables
-        private Timer buttonsReenablingTimer = new Timer() { Interval = Settings.TreatmentThrottleMilliseconds };
-        private IEngine bl;
+        private readonly Timer buttonsReenablingTimer = new() { Interval = Settings.TreatmentThrottleMilliseconds };
+        private IEngine bl = null!; // See https://stackoverflow.com/a/60812813/3559724; similar to Dart's _late_.
         bool isStarted = false;
         #endregion
 
         #region Constructor
-        public Dispatch()
+        public DispatchWindow()
         {
             InitializeComponent();
 
@@ -144,7 +144,7 @@ namespace Dispatch
                 this.Text = $"Dispatch ({this.bl.inFolderFilesCount - this.bl.SessionCount.Count}/{this.bl.OriginalFilesCount})";
             }
         }
-        private void btnBrowseInFolder_Click(object sender, EventArgs e)
+        private void BtnBrowseInFolder_Click(object sender, EventArgs e)
         {
             DialogResult result = this.inDirectoryBrowser.ShowDialog();
             if (result == DialogResult.OK)
@@ -152,7 +152,7 @@ namespace Dispatch
                 SetInDirectory(this.inDirectoryBrowser.SelectedPath);
             }
         }
-        private void btnBrowseOutDirectory_Click(object sender, EventArgs e)
+        private void BtnBrowseOutDirectory_Click(object sender, EventArgs e)
         {
             DialogResult result = this.outDirectoryBrowser.ShowDialog();
             if (result == DialogResult.OK)
@@ -180,7 +180,7 @@ namespace Dispatch
         }
 
         // `async void` is permitted here to make an event handler asynchronous (see https://stackoverflow.com/a/45449457/3559724).
-        private async void btnNext_Click(object sender, EventArgs e)
+        private async void BtnNext_Click(object sender, EventArgs e)
         {
             await this.bl.Next();
 
@@ -190,13 +190,13 @@ namespace Dispatch
                 this.isStarted = true;
             }
         }
-        private async void btnMoveOut_Click(object sender, EventArgs e)
+        private async void BtnMoveOut_Click(object sender, EventArgs e)
         {
             DisableButtons();
             await this.bl.Move();
             this.buttonsReenablingTimer.Start();
         }
-        private async void btnMoveDelete_Click(object sender, EventArgs e)
+        private async void BtnMoveDelete_Click(object sender, EventArgs e)
         {
             DisableButtons();
             await this.bl.Delete();
@@ -204,7 +204,7 @@ namespace Dispatch
         }
         #endregion
 
-        private void btnSelectFile_Click(object sender, EventArgs e)
+        private void BtnSelectFile_Click(object sender, EventArgs e)
         {
             // Simplified from https://stackoverflow.com/a/13680458.
             if (File.Exists(this.bl.CurrentFilePath))

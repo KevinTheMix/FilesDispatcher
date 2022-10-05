@@ -1,3 +1,4 @@
+using Dispatch.WebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dispatch.WebAPI.Controllers
