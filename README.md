@@ -1,8 +1,22 @@
 # FilesDispatcher
 
+## TODO
+
+* Read-only
+  * Empêcher touches claviers Move/Delete aussi
+* recursive browsing
+* Auto-play every 5 seconds
+* Display file title somewhere
+
 ## Changelog
 
-* 2022.10.05: added Jump() immediate volume control method
+* 2023.03.31 = adapted stats loading lifecycle: 'Stats' folder only created when not read-only (otherwise best effort aka load available counts)
+* 2023.02.17 = fixed missing AllCount initialization causing null ref in Engine contructor
+* 2023.01.22
+  * read-only mode disable Move buttons
+  * 'All-time' stats (scan Stats folder, loop past years)
+  * Make window stay on top (TopMost property)
+* 2022.10.05 = added Jump() immediate volume control method
 * 2022.09.23
   * Main window controls colour
   * set Volume

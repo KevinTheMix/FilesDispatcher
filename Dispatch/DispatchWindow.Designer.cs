@@ -48,6 +48,9 @@
             this.lblYear = new System.Windows.Forms.Label();
             this.lblYearCount = new System.Windows.Forms.Label();
             this.btnSelectFile = new System.Windows.Forms.Button();
+            this.lblAllCount = new System.Windows.Forms.Label();
+            this.lblAll = new System.Windows.Forms.Label();
+            this.cbxReadOnly = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // tbxInDirectory
@@ -72,7 +75,7 @@
             // btnNext
             // 
             this.btnNext.Enabled = false;
-            this.btnNext.Location = new System.Drawing.Point(168, 67);
+            this.btnNext.Location = new System.Drawing.Point(168, 95);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(102, 43);
             this.btnNext.TabIndex = 7;
@@ -85,7 +88,7 @@
             this.btnMoveDelete.BackColor = System.Drawing.Color.Coral;
             this.btnMoveDelete.Enabled = false;
             this.btnMoveDelete.ForeColor = System.Drawing.Color.Orange;
-            this.btnMoveDelete.Location = new System.Drawing.Point(92, 67);
+            this.btnMoveDelete.Location = new System.Drawing.Point(88, 95);
             this.btnMoveDelete.Name = "btnMoveDelete";
             this.btnMoveDelete.Size = new System.Drawing.Size(70, 43);
             this.btnMoveDelete.TabIndex = 6;
@@ -118,7 +121,7 @@
             this.btnMoveOut.Enabled = false;
             this.btnMoveOut.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnMoveOut.ForeColor = System.Drawing.Color.MediumSeaGreen;
-            this.btnMoveOut.Location = new System.Drawing.Point(16, 67);
+            this.btnMoveOut.Location = new System.Drawing.Point(12, 95);
             this.btnMoveOut.Name = "btnMoveOut";
             this.btnMoveOut.Size = new System.Drawing.Size(70, 43);
             this.btnMoveOut.TabIndex = 5;
@@ -129,7 +132,7 @@
             // lblSessionCount
             // 
             this.lblSessionCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblSessionCount.Location = new System.Drawing.Point(334, 11);
+            this.lblSessionCount.Location = new System.Drawing.Point(346, 11);
             this.lblSessionCount.Name = "lblSessionCount";
             this.lblSessionCount.Size = new System.Drawing.Size(130, 15);
             this.lblSessionCount.TabIndex = 9;
@@ -139,7 +142,7 @@
             // lblTodayCount
             // 
             this.lblTodayCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblTodayCount.Location = new System.Drawing.Point(334, 32);
+            this.lblTodayCount.Location = new System.Drawing.Point(346, 33);
             this.lblTodayCount.Name = "lblTodayCount";
             this.lblTodayCount.Size = new System.Drawing.Size(130, 15);
             this.lblTodayCount.TabIndex = 11;
@@ -158,7 +161,7 @@
             // lblToday
             // 
             this.lblToday.AutoSize = true;
-            this.lblToday.Location = new System.Drawing.Point(276, 32);
+            this.lblToday.Location = new System.Drawing.Point(276, 33);
             this.lblToday.Name = "lblToday";
             this.lblToday.Size = new System.Drawing.Size(43, 15);
             this.lblToday.TabIndex = 10;
@@ -167,7 +170,7 @@
             // lblWeek
             // 
             this.lblWeek.AutoSize = true;
-            this.lblWeek.Location = new System.Drawing.Point(276, 53);
+            this.lblWeek.Location = new System.Drawing.Point(276, 55);
             this.lblWeek.Name = "lblWeek";
             this.lblWeek.Size = new System.Drawing.Size(39, 15);
             this.lblWeek.TabIndex = 12;
@@ -176,7 +179,7 @@
             // lblWeekCount
             // 
             this.lblWeekCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblWeekCount.Location = new System.Drawing.Point(326, 53);
+            this.lblWeekCount.Location = new System.Drawing.Point(338, 55);
             this.lblWeekCount.Name = "lblWeekCount";
             this.lblWeekCount.Size = new System.Drawing.Size(138, 15);
             this.lblWeekCount.TabIndex = 13;
@@ -186,7 +189,7 @@
             // lblMonth
             // 
             this.lblMonth.AutoSize = true;
-            this.lblMonth.Location = new System.Drawing.Point(276, 74);
+            this.lblMonth.Location = new System.Drawing.Point(276, 77);
             this.lblMonth.Name = "lblMonth";
             this.lblMonth.Size = new System.Drawing.Size(46, 15);
             this.lblMonth.TabIndex = 14;
@@ -195,7 +198,7 @@
             // lblMonthCount
             // 
             this.lblMonthCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblMonthCount.Location = new System.Drawing.Point(317, 74);
+            this.lblMonthCount.Location = new System.Drawing.Point(329, 77);
             this.lblMonthCount.Name = "lblMonthCount";
             this.lblMonthCount.Size = new System.Drawing.Size(147, 15);
             this.lblMonthCount.TabIndex = 15;
@@ -205,7 +208,7 @@
             // lblYear
             // 
             this.lblYear.AutoSize = true;
-            this.lblYear.Location = new System.Drawing.Point(276, 95);
+            this.lblYear.Location = new System.Drawing.Point(276, 99);
             this.lblYear.Name = "lblYear";
             this.lblYear.Size = new System.Drawing.Size(33, 15);
             this.lblYear.TabIndex = 16;
@@ -214,11 +217,11 @@
             // lblYearCount
             // 
             this.lblYearCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblYearCount.Location = new System.Drawing.Point(310, 95);
+            this.lblYearCount.Location = new System.Drawing.Point(322, 99);
             this.lblYearCount.Name = "lblYearCount";
             this.lblYearCount.Size = new System.Drawing.Size(154, 15);
             this.lblYearCount.TabIndex = 17;
-            this.lblYearCount.Text = "4000 (2000+2000) = 50,00%";
+            this.lblYearCount.Text = "4000 (2000+2000) = 20,00%";
             this.lblYearCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // btnSelectFile
@@ -231,11 +234,44 @@
             this.btnSelectFile.UseVisualStyleBackColor = true;
             this.btnSelectFile.Click += new System.EventHandler(this.BtnSelectFile_Click);
             // 
+            // lblAllCount
+            // 
+            this.lblAllCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblAllCount.Location = new System.Drawing.Point(306, 123);
+            this.lblAllCount.Name = "lblAllCount";
+            this.lblAllCount.Size = new System.Drawing.Size(170, 15);
+            this.lblAllCount.TabIndex = 20;
+            this.lblAllCount.Text = "10000 (5000+5000) = 50,00%";
+            this.lblAllCount.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lblAll
+            // 
+            this.lblAll.AutoSize = true;
+            this.lblAll.Location = new System.Drawing.Point(276, 123);
+            this.lblAll.Name = "lblAll";
+            this.lblAll.Size = new System.Drawing.Size(24, 15);
+            this.lblAll.TabIndex = 19;
+            this.lblAll.Text = "All:";
+            // 
+            // cbxReadOnly
+            // 
+            this.cbxReadOnly.AutoSize = true;
+            this.cbxReadOnly.Location = new System.Drawing.Point(12, 67);
+            this.cbxReadOnly.Name = "cbxReadOnly";
+            this.cbxReadOnly.Size = new System.Drawing.Size(247, 19);
+            this.cbxReadOnly.TabIndex = 21;
+            this.cbxReadOnly.Text = "Read-only Mode? (files cannot be moved)";
+            this.cbxReadOnly.UseVisualStyleBackColor = true;
+            this.cbxReadOnly.CheckedChanged += new System.EventHandler(this.CbxReadOnly_CheckedChanged);
+            // 
             // DispatchWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(476, 124);
+            this.ClientSize = new System.Drawing.Size(488, 147);
+            this.Controls.Add(this.cbxReadOnly);
+            this.Controls.Add(this.lblAllCount);
+            this.Controls.Add(this.lblAll);
             this.Controls.Add(this.btnSelectFile);
             this.Controls.Add(this.lblYearCount);
             this.Controls.Add(this.lblYear);
@@ -259,6 +295,7 @@
             this.MaximizeBox = false;
             this.Name = "DispatchWindow";
             this.Text = "Dispatch";
+            this.TopMost = true;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Dispatch_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -286,5 +323,8 @@
         private Label lblYear;
         private Label lblYearCount;
         private Button btnSelectFile;
+        private Label lblAllCount;
+        private Label lblAll;
+        private CheckBox cbxReadOnly;
     }
 }

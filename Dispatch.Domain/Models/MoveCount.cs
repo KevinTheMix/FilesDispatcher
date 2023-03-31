@@ -12,7 +12,7 @@ namespace Dispatch.Domain.Models
             KeptCount = 0;
             DeletedCount = 0;
         }
-        public void Reset()
+        public void Initialize()
         {
             KeptCount = 0;
             DeletedCount = 0;

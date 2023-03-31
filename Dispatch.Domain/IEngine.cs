@@ -7,21 +7,22 @@ namespace Dispatch.Domain
 {
     public interface IEngine
     {
-        Dictionary<DateTime, MoveCount>? Counts { get; set; }
+        Dictionary<DateTime, MoveCount> Counts { get; }
         DateTime Today{ get; set; }
         MoveCount SessionCount{ get; set; }
         MoveCount WeekCount{ get; set; }
         MoveCount MonthCount{ get; set; }
         MoveCount YearCount{ get; set; }
+        MoveCount AllCount{ get; set; }
         string? CurrentFilePath{ get; set; }
         /// <summary>
         /// Total number of files to sort, initialized once by browser the "In" directory recursively on the very first run.
         /// </summary>
-        int OriginalFilesCount { get; set; }
+        int GrowingTotalCount { get; set; }
         /// <summary>
         /// Number of files currently in "In" folder itself (i.e. non-recursively).
         /// </summary>
-        int inFolderFilesCount{ get; set; }
+        int InFilesCount{ get; set; }
 
         event EventHandler<SkipArgs>? SkipCountUpdated;
         event EventHandler<WarningArgs>? WarningThrown;

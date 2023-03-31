@@ -6,7 +6,7 @@ namespace Dispatch.GUI
     public partial class DispatchWindow : Form
     {
         #region Variables
-        private readonly Timer buttonsReenablingTimer = new() { Interval = Settings.TreatmentThrottleMilliseconds };
+        private readonly Timer buttonsReenablingTimer = new() { Interval = Settings.ButtonsReleaseThrottleMilliseconds };
         private IEngine bl = null!; // See https://stackoverflow.com/a/60812813/3559724; similar to Dart's _late_.
         bool isStarted = false;
         #endregion
@@ -29,21 +29,23 @@ namespace Dispatch.GUI
         }
         private void SetInDirectory(string inDirectory)
         {
-            this.inDirectoryBrowser.SelectedPath = inDirectory;
-            this.tbxInDirectory.Text = inDirectory;
-
-            if (AreAllFieldsSet())
-            {
-                this.btnNext.Enabled = true;
-                this.btnNext.Text = "Start!";
-                BuildEngine();
-            }
+            this.inDirectoryBrowser.SelectedPath = this.tbxInDirectory.Text = inDirectory;
+            ResetState();
+            ReadyToStart();
         }
         private void SetOutDirectory(string outDirectory)
         {
-            this.outDirectoryBrowser.SelectedPath = outDirectory;
-            this.tbxOutDirectory.Text = outDirectory;
-
+            this.outDirectoryBrowser.SelectedPath = this.tbxOutDirectory.Text = outDirectory;
+            ResetState();
+            ReadyToStart();
+        }
+        private void ResetState()
+        {
+            this.cbxReadOnly.Enabled = true;
+            this.isStarted = false;
+        }
+        private void ReadyToStart()
+        {
             if (AreAllFieldsSet())
             {
                 this.btnNext.Enabled = true;
@@ -60,7 +62,7 @@ namespace Dispatch.GUI
             this.bl.CountsUpdated += Engine_CountsUpdated;
             this.bl.WarningThrown += Engine_WarningThrown;
             this.bl.EndReached += Engine_EndReached;
-            RefreshCountLabels();
+            ThreadSafeRefreshCountLabels();
         }
         private void CleanupEngine()
         {
@@ -78,14 +80,14 @@ namespace Dispatch.GUI
         private void ButtonsReenablingTimer_Tick(object? sender, EventArgs e)
         {
             this.buttonsReenablingTimer.Stop();
-            EnableButtons();
+            EnableMoveButtons();
         }
-        private void EnableButtons()
+        private void EnableMoveButtons()
         {
             this.btnMoveOut.Enabled = true;
             this.btnMoveDelete.Enabled = true;
         }
-        private void DisableButtons()
+        private void DisableMoveButtons()
         {
             this.btnMoveOut.Enabled = false;
             this.btnMoveDelete.Enabled = false;
@@ -93,6 +95,16 @@ namespace Dispatch.GUI
             //// Invoke back to UI thread (see https://stackoverflow.com/a/142069).
             //this.btnMoveOut.Invoke(new MethodInvoker(delegate { this.btnMoveOut.Enabled = false; }));
             //this.btnMoveDelete.Invoke(new MethodInvoker(delegate { this.btnMoveDelete.Enabled = false; }));
+        }
+        private void ShowMoveButtons()
+        {
+            this.btnMoveOut.Visible = true;
+            this.btnMoveDelete.Visible = true;
+        }
+        private void HideMoveButtons()
+        {
+            this.btnMoveOut.Visible = false;
+            this.btnMoveDelete.Visible = false;
         }
         private bool AreAllFieldsSet()
         {
@@ -110,38 +122,35 @@ namespace Dispatch.GUI
         }
         private void Engine_CountsUpdated()
         {
-            RefreshCountLabels();
+            ThreadSafeRefreshCountLabels();
         }
         private void Engine_EndReached()
         {
-            DisableButtons();
+            DisableMoveButtons();
             MessageBox.Show("Last file being treated; quickly close the application where it is open so that it can be treated");
             this.btnNext.Text = "Finished";
         }
 
         private void RefreshCountLabels()
         {
+            this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.GrowingTotalCount)}";
+            this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / this.bl.GrowingTotalCount)}";
+            this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / this.bl.GrowingTotalCount)}";
+            this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / this.bl.GrowingTotalCount)}";
+            this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / this.bl.GrowingTotalCount)}";
+            this.lblAllCount.Text = $"{this.bl.AllCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.AllCount.Count / this.bl.GrowingTotalCount)}";
+            this.Text = $"Dispatch ({this.bl.InFilesCount - this.bl.SessionCount.Count}/{this.bl.GrowingTotalCount})";
+        }
+        private void ThreadSafeRefreshCountLabels()
+        {
             // Invoke back to UI thread (see https://stackoverflow.com/a/142069).
             if (this.InvokeRequired)
             {
-                this.Invoke(new MethodInvoker(delegate
-                {
-                    this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.OriginalFilesCount)}";
-                    this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / this.bl.OriginalFilesCount)}";
-                    this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / this.bl.OriginalFilesCount)}";
-                    this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / this.bl.OriginalFilesCount)}";
-                    this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / this.bl.OriginalFilesCount)}";
-                    this.Text = $"Dispatch ({this.bl.inFolderFilesCount - this.bl.SessionCount.Count}/{this.bl.OriginalFilesCount})";
-                }));
+                this.Invoke(new MethodInvoker(RefreshCountLabels));
             }
             else
             {
-                this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.OriginalFilesCount)}";
-                this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / this.bl.OriginalFilesCount)}";
-                this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / this.bl.OriginalFilesCount)}";
-                this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / this.bl.OriginalFilesCount)}";
-                this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / this.bl.OriginalFilesCount)}";
-                this.Text = $"Dispatch ({this.bl.inFolderFilesCount - this.bl.SessionCount.Count}/{this.bl.OriginalFilesCount})";
+                RefreshCountLabels();
             }
         }
         private void BtnBrowseInFolder_Click(object sender, EventArgs e)
@@ -182,23 +191,24 @@ namespace Dispatch.GUI
         // `async void` is permitted here to make an event handler asynchronous (see https://stackoverflow.com/a/45449457/3559724).
         private async void BtnNext_Click(object sender, EventArgs e)
         {
-            await this.bl.Next();
-
-            if(!this.isStarted)
+            if (!this.isStarted)
             {
-                EnableButtons();
+                EnableMoveButtons();
+                this.cbxReadOnly.Enabled = false;
                 this.isStarted = true;
             }
+
+            await this.bl.Next();
         }
         private async void BtnMoveOut_Click(object sender, EventArgs e)
         {
-            DisableButtons();
+            DisableMoveButtons();
             await this.bl.Move();
             this.buttonsReenablingTimer.Start();
         }
         private async void BtnMoveDelete_Click(object sender, EventArgs e)
         {
-            DisableButtons();
+            DisableMoveButtons();
             await this.bl.Delete();
             this.buttonsReenablingTimer.Start();
         }
@@ -210,6 +220,18 @@ namespace Dispatch.GUI
             if (File.Exists(this.bl.CurrentFilePath))
             {
                 System.Diagnostics.Process.Start("explorer.exe", string.Format("/select,\"{0}\"", this.bl.CurrentFilePath));
+            }
+        }
+
+        private void CbxReadOnly_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cbxReadOnly.CheckState == CheckState.Checked)
+            {
+                HideMoveButtons();
+            }
+            else
+            {
+                ShowMoveButtons();
             }
         }
     }
