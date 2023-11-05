@@ -31,20 +31,20 @@ namespace Dispatch.GUI
         {
             this.inDirectoryBrowser.SelectedPath = this.tbxInDirectory.Text = inDirectory;
             ResetState();
-            ReadyToStart();
+            SetReadyToStart();
         }
         private void SetOutDirectory(string outDirectory)
         {
             this.outDirectoryBrowser.SelectedPath = this.tbxOutDirectory.Text = outDirectory;
             ResetState();
-            ReadyToStart();
+            SetReadyToStart();
         }
         private void ResetState()
         {
             this.cbxReadOnly.Enabled = true;
             this.isStarted = false;
         }
-        private void ReadyToStart()
+        private void SetReadyToStart()
         {
             if (AreAllFieldsSet())
             {

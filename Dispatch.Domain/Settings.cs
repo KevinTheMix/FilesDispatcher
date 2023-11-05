@@ -2,7 +2,7 @@
 {
     public static class Settings
     {
-        public const string InDirectory = @"V:\@ Sort\# Images";
+        public const string InDirectory = @"V:\@ Sort\# Musique";
         //public const string InDirectory = @"M:";
         public const string OutDirectory = @"V:\@ Sort\@ Very Good";
         public const string StatsFolder = "- Dispatch Stats";

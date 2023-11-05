@@ -32,6 +32,7 @@ namespace Dispatch.Domain
         private readonly string statsDirectory;
         private Process? process;
         private int skipsCount;
+        private Random random;
         #endregion
 
         #region Properties
@@ -73,11 +74,16 @@ namespace Dispatch.Domain
             this.MonthCount = new MoveCount();
             this.YearCount = new MoveCount();
             this.AllCount = new MoveCount();
+
+            random = new Random();
+
+            CreateOnceStatsFolder();
+
             LoadCounts();
 
             this.processStartInfo = new ProcessStartInfo
             {
-                FileName = ExplorerProcessFileName,
+                //FileName = ExplorerProcessFileName,   // Previously using explorer.exe to open files (as Arguments), but it couldn't handle Unicode chars in file names.
                 WindowStyle = ProcessWindowStyle.Minimized,
                 CreateNoWindow = true
             };
@@ -113,7 +119,8 @@ namespace Dispatch.Domain
             await Task.Run(() =>
             {
                 // See https://stackoverflow.com/a/240610
-                this.processStartInfo.Arguments = $"\"{this.CurrentFilePath}\"";
+                this.processStartInfo.FileName = this.CurrentFilePath;
+                this.processStartInfo.UseShellExecute = true;   // Using this to open non-executable files (eg media). Thanks ChatGPT 3.5.
                 this.process = Process.Start(this.processStartInfo);
                 if (this.process != null)
                 {
@@ -129,7 +136,7 @@ namespace Dispatch.Domain
         }
         public async Task Move()
         {
-            if (!String.IsNullOrEmpty(this.CurrentFilePath))
+            if (!this.IsReadOnly && !String.IsNullOrEmpty(this.CurrentFilePath))
             {
                 this.filesToMove.Add(new FileMove { Action = MoveAction.Keep, Path = this.CurrentFilePath });
                 await Next(false);
@@ -138,7 +145,7 @@ namespace Dispatch.Domain
         }
         public async Task Delete()
         {
-            if (!String.IsNullOrEmpty(this.CurrentFilePath))
+            if (!this.IsReadOnly && !String.IsNullOrEmpty(this.CurrentFilePath))
             {
                 this.filesToMove.Add(new FileMove { Action = MoveAction.Delete, Path = this.CurrentFilePath });
                 await Next(false);
@@ -236,15 +243,15 @@ namespace Dispatch.Domain
                 return null;
             }
 
-            Random random = new();
-            int chosenMp3Index = random.Next(1, remainingsNotCurrentlyBeingMoved.Count());
-            return remainingsNotCurrentlyBeingMoved.ElementAt(chosenMp3Index - 1);
+            int chosenFileIndex = this.random.Next(0, remainingsNotCurrentlyBeingMoved.Count());    // Upper bound is non-inclusive => no need to decrement by 1.
+            return remainingsNotCurrentlyBeingMoved.ElementAt(chosenFileIndex);
         }
         private void ConsumeFileToMove()
         {
             while (!this.filesToMove.IsCompleted)   // While queue not empty.
             {
                 FileMove fileToMove = this.filesToMove.Take();   // This is THE blocking call.
+                string fileNameToMove = Path.GetFileName(fileToMove.Path);
                 Thread.Sleep(Settings.MoveTryMilliseconds);  // Let the opening of another file go first.
 
                 bool wasTreated = false;
@@ -255,9 +262,14 @@ namespace Dispatch.Domain
                         File.SetAttributes(fileToMove.Path, FileAttributes.Normal); // Removes potential readonly attributes preventing deletion (https://stackoverflow.com/a/45603466/3559724).
                         switch (fileToMove.Action)
                         {
-                            case MoveAction.Keep: File.Move(fileToMove.Path, Path.Combine(this.outDirectory, Path.GetFileName(fileToMove.Path))); break;
+                            case MoveAction.Keep: File.Move(fileToMove.Path, Path.Combine(this.outDirectory, fileNameToMove)); break;
                             case MoveAction.Delete: File.Delete(fileToMove.Path); break;
                         }
+
+                        // Log
+                        string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
+                        File.AppendAllText(Path.Combine(statsDirectory, "move.log"), $"{fileToMove.Action}\t{fileNameToMove}{Environment.NewLine}");
+
                         wasTreated = true;
                     }
                     catch   // If the file is still in use.
@@ -300,18 +312,16 @@ namespace Dispatch.Domain
                 return;
             }
 
-            string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
-            if (!Directory.Exists(statsDirectory))
-            {
-                CreateOnceStatsFolder();
-            }
-
             WriteCurrentYearFile();
         }
         private void CreateOnceStatsFolder()
         {
-            Directory.CreateDirectory(this.statsDirectory);
-            WriteGrowingTotalFile();
+            string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
+            if (!Directory.Exists(statsDirectory))
+            {
+                Directory.CreateDirectory(this.statsDirectory);
+                //WriteGrowingTotalFile();
+            }
         }
         private void WriteGrowingTotalFile()
         {
@@ -321,10 +331,12 @@ namespace Dispatch.Domain
         private void WriteCurrentYearFile()
         {
             string currentYearFilePath = Path.Combine(this.statsDirectory, $"{this.Today.Year}.txt");
-            StreamWriter countsFile = new(currentYearFilePath, false);
-            foreach (var kvp in this.Counts.Where(kvp => kvp.Key.Year == Today.Year))
+            using (StreamWriter countsFile = new(currentYearFilePath, false))
             {
-                countsFile.WriteLine($"{kvp.Key:MM.dd}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
+                foreach (var kvp in this.Counts.Where(kvp => kvp.Key.Year == Today.Year))
+                {
+                    countsFile.WriteLine($"{kvp.Key:MM.dd}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
+                }
             }
         }
         #endregion
