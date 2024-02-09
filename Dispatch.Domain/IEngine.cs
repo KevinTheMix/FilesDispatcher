@@ -13,16 +13,16 @@ namespace Dispatch.Domain
         MoveCount WeekCount{ get; set; }
         MoveCount MonthCount{ get; set; }
         MoveCount YearCount{ get; set; }
-        MoveCount AllCount{ get; set; }
+        MoveCount DoneCount{ get; set; }
         string? CurrentFilePath{ get; set; }
         /// <summary>
-        /// Total number of files to sort, initialized once by browser the "In" directory recursively on the very first run.
+        /// Number of files currently in "In" folder itself (ie non-recursively).
         /// </summary>
-        int GrowingTotalCount { get; set; }
+        int InFolderCount { get; set; }
         /// <summary>
-        /// Number of files currently in "In" folder itself (i.e. non-recursively).
+        /// Number of files currently in the "In" directory (recursively), initialized once on the very first run and periodically refreshed after that.
         /// </summary>
-        int InFilesCount{ get; set; }
+        int RemainingCount { get; set; }
 
         event EventHandler<SkipArgs>? SkipCountUpdated;
         event EventHandler<WarningArgs>? WarningThrown;

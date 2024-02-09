@@ -23,18 +23,6 @@ namespace Dispatch.Domain
 
     public class Engine : IEngine
     {
-        #region Variables
-        private const string ExplorerProcessFileName = "explorer";
-        private readonly BlockingCollection<FileMove> filesToMove = new(1);
-        private readonly ProcessStartInfo processStartInfo;
-        private readonly string inDirectory;
-        private readonly string outDirectory;
-        private readonly string statsDirectory;
-        private Process? process;
-        private int skipsCount;
-        private Random random;
-        #endregion
-
         #region Properties
         public event EventHandler<SkipArgs>? SkipCountUpdated;
         public event EventHandler<WarningArgs>? WarningThrown;
@@ -43,47 +31,52 @@ namespace Dispatch.Domain
 
         public Dictionary<DateTime, MoveCount> Counts { get; private set; }
         public DateTime Today { get; set; }
-        public MoveCount SessionCount { get; set; }
-        public MoveCount WeekCount { get; set; }
-        public MoveCount MonthCount { get; set; }
-        public MoveCount YearCount { get; set; }
-        public MoveCount AllCount { get; set; }
+        public MoveCount SessionCount { get; set; } = new MoveCount();
+        public MoveCount WeekCount { get; set; } = new MoveCount();
+        public MoveCount MonthCount { get; set; } = new MoveCount();
+        public MoveCount YearCount { get; set; } = new MoveCount();
+        public MoveCount DoneCount { get; set; } = new MoveCount();
         public string? CurrentFilePath { get; set; }
         /// <summary>
-        /// Total number of files to sort, initialized once by browser the "In" directory recursively on the very first run.
+        /// Number of files currently in "In" folder itself (ie non-recursively).
         /// </summary>
-        public int GrowingTotalCount { get; set; }
+        public int InFolderCount { get; set; }
         /// <summary>
-        /// Number of files currently in "In" folder itself (i.e. non-recursively).
+        /// Number of files currently in the "In" directory (recursively), initialized once on the very first run and periodically refreshed after that.
         /// </summary>
-        public int InFilesCount { get; set; }
-        public int RecursiveInFilesCount { get; set; }
+        public int RemainingCount { get; set; }
         public bool IsReadOnly { get; set; }
+        #endregion
+
+        #region Variables
+        private readonly BlockingCollection<FileMove> filesToMove = new(1);
+        private readonly ProcessStartInfo processStartInfo;
+        private readonly string inDirectory;
+        private readonly string outDirectory;
+        private readonly string statsDirectory;
+        private readonly string remaininCountFilePath;
+        private readonly Random random;
+        private Process? process;
+        private int skipsCount;
         #endregion
 
         #region Constructor
         public Engine(string inDirectory, string outDirectory)
         {
+            this.skipsCount = -1;  // accounts for first increment performed regardless (see method Next()).
+            this.random = new Random();
+            this.Today = DateTime.Today;    // So the whole class agrees on what the current day is.
             this.inDirectory = inDirectory;
             this.outDirectory = outDirectory;
             this.statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
-
-            this.Today = DateTime.Today;    // So the whole class agrees on what the current day is.
-            this.SessionCount = new MoveCount();
-            this.WeekCount = new MoveCount();
-            this.MonthCount = new MoveCount();
-            this.YearCount = new MoveCount();
-            this.AllCount = new MoveCount();
-
-            random = new Random();
-
+            this.remaininCountFilePath = Path.Combine(this.statsDirectory, Settings.RemainingCountFileName);
             CreateOnceStatsFolder();
 
-            LoadCounts();
+            InitializeCounts();           
 
             this.processStartInfo = new ProcessStartInfo
             {
-                //FileName = ExplorerProcessFileName,   // Previously using explorer.exe to open files (as Arguments), but it couldn't handle Unicode chars in file names.
+                //FileName = "explorer",    // Previously using explorer.exe to open files, but it couldn't handle Unicode chars in file names, so use Windows shell instead.
                 WindowStyle = ProcessWindowStyle.Minimized,
                 CreateNoWindow = true
             };
@@ -152,58 +145,23 @@ namespace Dispatch.Domain
             }
         }
 
-        private void LoadCounts()
+        private void InitializeCounts()
         {
-            this.SessionCount.Initialize();
-            this.skipsCount = -1;  // -1 accounts for first increment performed regardless (see method Next()).
-            this.InFilesCount = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Count();
-            this.RecursiveInFilesCount = Directory.EnumerateFiles(this.inDirectory, "*.*", new EnumerationOptions() { AttributesToSkip = FileAttributes.System, RecurseSubdirectories = true }).Count();
-            this.GrowingTotalCount = LoadGrowingTotal();
-
-            //if (!Directory.Exists(this.statsDirectory))
-            //{
-            //    ResetDatedCounts();
-            //    return;
-            //}
-
-            this.Counts = ParseDatedCounts();
-            if (!this.Counts.Any())
+            this.Counts = ReadDatedCounts();
+            if (!this.Counts.Any() || !this.Counts.ContainsKey(this.Today))
             {
-                ResetDatedCounts();
+                this.Counts.Add(this.Today, new MoveCount());
             }
-            else
+            if (this.Counts.Any())
             {
-                CalculateCounts();
+                CalculateDoneCounts();
             }
-            AdjustGrowingTotal();
+
+            this.RemainingCount = File.Exists(this.remaininCountFilePath) ? ReadOrEnumerateStaleRemainingCount() : EnumerateRemainingCount();
+            this.InFolderCount = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Count();
             this.CountsUpdated?.Invoke();
         }
-        private void AdjustGrowingTotal()
-        {
-            this.GrowingTotalCount = this.AllCount.Count + this.RecursiveInFilesCount;    // Done + (recursive) Remaining = new all-time total.
-            WriteGrowingTotalFile();
-        }
-
-        private void ResetDatedCounts()
-        {
-            this.Counts.Add(this.Today, new MoveCount { KeptCount = 0, DeletedCount = 0 });
-            this.WeekCount.Initialize();
-            this.MonthCount.Initialize();
-            this.YearCount.Initialize();
-            this.AllCount.Initialize();
-        }
-        private void CalculateCounts()
-        {
-            if (!this.Counts.ContainsKey(Today))
-            {
-                this.Counts.Add(Today, new MoveCount());
-            }
-            this.WeekCount = this.Counts.Where(kvp => kvp.Key >= Today.GetLastMonday()).Sum();
-            this.MonthCount = this.Counts.Where(kvp => kvp.Key.Year == Today.Year && kvp.Key.Month == Today.Month).Sum();
-            this.YearCount = this.Counts.Where(kvp => kvp.Key.Year == Today.Year).Sum();
-            this.AllCount = this.Counts.Sum();
-        }
-        private Dictionary<DateTime, MoveCount> ParseDatedCounts()
+        private Dictionary<DateTime, MoveCount> ReadDatedCounts()
         {
             Dictionary<DateTime, MoveCount> counts = new();
             string yearFilePath;
@@ -222,19 +180,45 @@ namespace Dispatch.Domain
             while (this.Today.Year - --year <= Settings.PastYearsLookedBehind || lastFileExists);
             return counts;
         }
-        private int LoadGrowingTotal()
+        private void CalculateDoneCounts()
         {
-            string growingTotalFilePath = Path.Combine(this.statsDirectory, Settings.GrowingTotalFileName);
-            if (File.Exists(growingTotalFilePath))
+            this.WeekCount = this.Counts.Where(kvp => kvp.Key >= Today.GetLastMonday()).Sum();
+            this.MonthCount = this.Counts.Where(kvp => kvp.Key.Year == Today.Year && kvp.Key.Month == Today.Month).Sum();
+            this.YearCount = this.Counts.Where(kvp => kvp.Key.Year == Today.Year).Sum();
+            this.DoneCount = this.Counts.Sum();
+        }
+        private int ReadOrEnumerateStaleRemainingCount()
+        {
+            bool isRemainingCountStale = new FileInfo(this.remaininCountFilePath).LastWriteTime < this.Today.AddDays(-Settings.DaysBeforeUpdate);
+            return isRemainingCountStale ? EnumerateRemainingCount() : Int32.Parse(File.ReadAllText(this.remaininCountFilePath));
+        }
+        private int EnumerateRemainingCount()
+        {
+            int remainingCount = Directory.EnumerateFiles(this.inDirectory, "*.*", new EnumerationOptions() { AttributesToSkip = FileAttributes.System, RecurseSubdirectories = true }).Count();
+            WriteRemainingCountFile(remainingCount);
+            return remainingCount;
+        }
+        private void CreateOnceStatsFolder()
+        {
+            string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
+            if (!Directory.Exists(statsDirectory))
             {
-                return Int32.Parse(File.ReadAllText(growingTotalFilePath));
-            }
-            else
-            {
-                return Directory.EnumerateFiles(this.inDirectory, "*.*", new EnumerationOptions() { AttributesToSkip = FileAttributes.System, RecurseSubdirectories = true }).Count();
+                Directory.CreateDirectory(this.statsDirectory);
             }
         }
-
+        private void WriteRemainingCountFile(int remainingCount)
+        {
+            File.WriteAllText(this.remaininCountFilePath, remainingCount.ToString());
+        }
+        private void WriteCurrentYearFile()
+        {
+            string currentYearFilePath = Path.Combine(this.statsDirectory, $"{this.Today.Year}.txt");
+            using StreamWriter countsFile = new(currentYearFilePath, false);
+            foreach (var kvp in this.Counts.Where(kvp => kvp.Key.Year == Today.Year))
+            {
+                countsFile.WriteLine($"{kvp.Key:MM.dd}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
+            }
+        }
         private string? GetNextRandomFilePath()
         {
             IEnumerable<string> remainingsNotCurrentlyBeingMoved = Directory.EnumerateFiles(this.inDirectory, "*.*", SearchOption.TopDirectoryOnly).Where(remaining => this.filesToMove.All(move => remaining != move.Path));
@@ -290,53 +274,26 @@ namespace Dispatch.Domain
                 }
             }
         }
-        private void IncrementCounts(MoveAction action)
-        {
-            this.SessionCount.Increment(action);
-            this.Counts[this.Today].Increment(action);
-            this.WeekCount.Increment(action);
-            this.MonthCount.Increment(action);
-            this.YearCount.Increment(action);
-            this.AllCount.Increment(action);
-
-            this.CountsUpdated?.Invoke();
-        }
         private void SetSkipCount(int skipCount)
         {
             this.SkipCountUpdated?.Invoke(this, new SkipArgs { Count = Settings.MaxSkipCount - skipCount });
         }
+        private void IncrementCounts(MoveAction action)
+        {
+            this.Counts[this.Today].Increment(action);
+            this.SessionCount.Increment(action);
+            this.WeekCount.Increment(action);
+            this.MonthCount.Increment(action);
+            this.YearCount.Increment(action);
+            this.DoneCount.Increment(action);
+
+            this.CountsUpdated?.Invoke();
+        }
         private void SaveStats()
         {
-            if (this.IsReadOnly)
+            if (!this.IsReadOnly)
             {
-                return;
-            }
-
-            WriteCurrentYearFile();
-        }
-        private void CreateOnceStatsFolder()
-        {
-            string statsDirectory = Path.Combine(this.inDirectory, Settings.StatsFolder);
-            if (!Directory.Exists(statsDirectory))
-            {
-                Directory.CreateDirectory(this.statsDirectory);
-                //WriteGrowingTotalFile();
-            }
-        }
-        private void WriteGrowingTotalFile()
-        {
-            string growingTotalFilePath = Path.Combine(this.statsDirectory, Settings.GrowingTotalFileName);
-            File.WriteAllText(growingTotalFilePath, this.GrowingTotalCount.ToString());
-        }
-        private void WriteCurrentYearFile()
-        {
-            string currentYearFilePath = Path.Combine(this.statsDirectory, $"{this.Today.Year}.txt");
-            using (StreamWriter countsFile = new(currentYearFilePath, false))
-            {
-                foreach (var kvp in this.Counts.Where(kvp => kvp.Key.Year == Today.Year))
-                {
-                    countsFile.WriteLine($"{kvp.Key:MM.dd}\t{kvp.Value.KeptCount}\t{kvp.Value.DeletedCount}");
-                }
+                WriteCurrentYearFile();
             }
         }
         #endregion

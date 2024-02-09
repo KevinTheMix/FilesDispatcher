@@ -7,12 +7,8 @@ namespace Dispatch.Domain.Models
         public int KeptCount { get; set; }
         public int DeletedCount { get; set; }
         public int Count => KeptCount + DeletedCount;
-        public MoveCount()
-        {
-            KeptCount = 0;
-            DeletedCount = 0;
-        }
-        public void Initialize()
+
+        public void Reset()
         {
             KeptCount = 0;
             DeletedCount = 0;

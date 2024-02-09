@@ -10,15 +10,16 @@
 
 ## Changelog
 
-* 2023.11.05 - fixed some files that couldn't be opened because of Unicode chars in their names (by using Windows shell instead of explorer.exe in ProcessStartInfo)
-* 2023.09.15 - fixed random off by one (prevented last file from ever being picked)
-* 2023.03.31 - adapted stats loading lifecycle: 'Stats' folder only created when not read-only (otherwise best effort aka load available counts)
-* 2023.02.17 - fixed missing AllCount initialization causing null ref in Engine contructor
+* 2024.02.09. refactored Engine to prevent excessive I/O reads (full recursive browsing throttled every n days instead of per Windows restart/cache refresh)
+* 2023.11.05. fixed some files that couldn't be opened because of Unicode chars in their names (by using Windows shell instead of explorer.exe in ProcessStartInfo)
+* 2023.09.15. fixed random off by one (prevented last file from ever being picked)
+* 2023.03.31. adapted stats loading lifecycle: 'Stats' folder only created when not read-only (otherwise best effort aka load available counts)
+* 2023.02.17. fixed missing AllCount initialization causing null ref in Engine contructor
 * 2023.01.22
   * read-only mode disable Move buttons
   * 'All-time' stats (scan Stats folder, loop past years)
   * Make window stay on top (TopMost property)
-* 2022.10.05 - added Jump() immediate volume control method
+* 2022.10.05. added Jump() immediate volume control method
 * 2022.09.23
   * Main window controls colour
   * set Volume

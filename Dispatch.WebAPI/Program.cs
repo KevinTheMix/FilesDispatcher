@@ -28,7 +28,6 @@ namespace Dispatch.WebAPI
             // v2: construct a BL with a custom config section, and inject it instead.
             DispatchSection dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();  // See https://stackoverflow.com/a/70771643/3559724
             builder.Services.AddSingleton<IEngine>(new Engine(dispatchSection.InDirectory, dispatchSection.OutDirectory));
-
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

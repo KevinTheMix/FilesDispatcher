@@ -7,7 +7,7 @@ namespace Dispatch.GUI
     {
         #region Variables
         private readonly Timer buttonsReenablingTimer = new() { Interval = Settings.ButtonsReleaseThrottleMilliseconds };
-        private IEngine bl = null!; // See https://stackoverflow.com/a/60812813/3559724; similar to Dart's _late_.
+        private IEngine bl = null!; // See https://stackoverflow.com/a/60812813/3559724 (similar to Dart's _late_).
         bool isStarted = false;
         #endregion
 
@@ -133,13 +133,15 @@ namespace Dispatch.GUI
 
         private void RefreshCountLabels()
         {
-            this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.GrowingTotalCount)}";
-            this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / this.bl.GrowingTotalCount)}";
-            this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / this.bl.GrowingTotalCount)}";
-            this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / this.bl.GrowingTotalCount)}";
-            this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / this.bl.GrowingTotalCount)}";
-            this.lblAllCount.Text = $"{this.bl.AllCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.AllCount.Count / this.bl.GrowingTotalCount)}";
-            this.Text = $"Dispatch ({this.bl.InFilesCount - this.bl.SessionCount.Count}/{this.bl.GrowingTotalCount})";
+            int allTimeCount = this.bl.DoneCount.Count + this.bl.RemainingCount;
+
+            this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.RemainingCount)}";
+            this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / allTimeCount)}";
+            this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / allTimeCount)}";
+            this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / allTimeCount)}";
+            this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / allTimeCount)}";
+            this.lblAllCount.Text = $"{this.bl.DoneCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.DoneCount.Count / allTimeCount)}";
+            this.Text = $"Dispatch (Left: {this.bl.InFolderCount - this.bl.SessionCount.Count} root, {this.bl.RemainingCount} recursive)";
         }
         private void ThreadSafeRefreshCountLabels()
         {
