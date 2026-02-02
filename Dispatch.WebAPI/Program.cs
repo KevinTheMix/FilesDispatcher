@@ -10,17 +10,6 @@ namespace Dispatch.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Inspired by https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-6.0
-            // v1: Does not work:
-            //WebHost.CreateDefaultBuilder(args).UseUrls("http://192.168.1.6:5000");
-            // v2: Causes error:
-            //builder.Host.ConfigureWebHost((configure) =>
-            //{
-            //    configure.UseUrls("http://192.168.1.6:5000");
-            //});
-            // v3: works!
-            builder.WebHost.UseUrls("http://192.168.1.6:5000");
-
             // Add services to the container.
 
             // v1: read & inject a custom config section.
@@ -32,6 +21,20 @@ namespace Dispatch.WebAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
+            // Inspired by https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-6.0
+            // v1: Does not work:
+            //WebHost.CreateDefaultBuilder(args).UseUrls("http://192.168.1.6:5000");
+            // v2: Causes error:
+            //builder.Host.ConfigureWebHost((configure) =>
+            //{
+            //    configure.UseUrls("http://192.168.1.6:5000");
+            //});
+            // v3: works!
+            builder.WebHost.UseUrls("http://192.168.1.6:5000");
+            // v4: "dynamic" IP.
+            builder.WebHost.UseUrls($"http://{dispatchSection}:5000");
 
             var app = builder.Build();
 

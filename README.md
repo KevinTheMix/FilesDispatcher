@@ -10,6 +10,7 @@
 
 ## Changelog
 
+* 2024.10.23. fixed Start button label not updating on first execution
 * 2024.02.09. refactored Engine to prevent excessive I/O reads (full recursive browsing throttled every n days instead of per Windows restart/cache refresh)
 * 2023.11.05. fixed some files that couldn't be opened because of Unicode chars in their names (by using Windows shell instead of explorer.exe in ProcessStartInfo)
 * 2023.09.15. fixed random off by one (prevented last file from ever being picked)

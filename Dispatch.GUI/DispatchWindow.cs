@@ -136,8 +136,8 @@ namespace Dispatch.GUI
             int allTimeCount = this.bl.DoneCount.Count + this.bl.RemainingCount;
 
             this.lblSessionCount.Text = $"{this.bl.SessionCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.SessionCount.Count / this.bl.RemainingCount)}";
-            this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / allTimeCount)}";
-            this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / allTimeCount)}";
+            this.lblTodayCount.Text = $"{this.bl.Counts[this.bl.Today]} = {String.Format("{0:0.00}%", 100.0 * this.bl.Counts[this.bl.Today].Count / this.bl.RemainingCount)}";
+            this.lblWeekCount.Text = $"{this.bl.WeekCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.WeekCount.Count / this.bl.RemainingCount)}";
             this.lblMonthCount.Text = $"{this.bl.MonthCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.MonthCount.Count / allTimeCount)}";
             this.lblYearCount.Text = $"{this.bl.YearCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.YearCount.Count / allTimeCount)}";
             this.lblAllCount.Text = $"{this.bl.DoneCount} = {String.Format("{0:0.00}%", 100.0 * this.bl.DoneCount.Count / allTimeCount)}";
@@ -216,7 +216,7 @@ namespace Dispatch.GUI
         }
         #endregion
 
-        private void BtnSelectFile_Click(object sender, EventArgs e)
+        private void BtnFindFile_Click(object sender, EventArgs e)
         {
             // Simplified from https://stackoverflow.com/a/13680458.
             if (File.Exists(this.bl.CurrentFilePath))
@@ -224,7 +224,6 @@ namespace Dispatch.GUI
                 System.Diagnostics.Process.Start("explorer.exe", string.Format("/select,\"{0}\"", this.bl.CurrentFilePath));
             }
         }
-
         private void CbxReadOnly_CheckedChanged(object sender, EventArgs e)
         {
             if (this.cbxReadOnly.CheckState == CheckState.Checked)

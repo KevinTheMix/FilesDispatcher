@@ -6,7 +6,29 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+	  <!-- 2025.01.09: Added custom .exe icon -->
+	  <!-- recyclable: https://icon-icons.com/icon/trash-delete-remove-recycle-bin-refresh/104857 -->
+	  <!-- pad: https://icon-icons.com/icon/control-panel-contro/3472 -->
+	  <ApplicationIcon>pad_white.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="pad.ico" />
+    <None Remove="pad_white.ico" />
+    <None Remove="recyclable.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="pad.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="pad_white.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="recyclable.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Dispatch.Domain\Dispatch.Domain.csproj" />

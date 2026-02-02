@@ -114,17 +114,17 @@ namespace Dispatch.Domain
                 // See https://stackoverflow.com/a/240610
                 this.processStartInfo.FileName = this.CurrentFilePath;
                 this.processStartInfo.UseShellExecute = true;   // Using this to open non-executable files (eg media). Thanks ChatGPT 3.5.
-                this.process = Process.Start(this.processStartInfo);
-                if (this.process != null)
+                if (this.process == null)
                 {
-                    this.process.WaitForExit();
-                    //exitCode = this.process.ExitCode;
-
-                    //if (!Process.GetProcessesByName(VlcProcessName).Any())
-                    //{
-                    //    DisableButtons();
-                    //}
+                    this.process = Process.Start(this.processStartInfo);
                 }
+                else
+                {
+                    this.process.StartInfo = this.processStartInfo;
+                    this.process.Start();
+                }
+                this.process?.Close();
+                //this.process.WaitForExit();
             });
         }
         public async Task Move()

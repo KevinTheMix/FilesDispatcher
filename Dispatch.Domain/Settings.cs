@@ -2,8 +2,8 @@
 {
     public static class Settings
     {
-        public const string InDirectory = @"V:\@ Sort\# Musique";
-        public const string OutDirectory = @"V:\@ Sort\@ Very Good";
+        public const string InDirectory = @"M:\@ Sort\# Musique";
+        public const string OutDirectory = @"M:\@ Sort\@ Very Good";
         public const string StatsFolder = "- Dispatch Stats";
         public const string RemainingCountFileName = "remaining.txt";
         public const int MaxSkipCount = 50;
