@@ -18,8 +18,19 @@ namespace Dispatch.GUI
 
             // Initialize configuration
             ConfigurationProvider.Initialize(AppContext.BaseDirectory);
-            SetInDirectory(ConfigurationProvider.GetInDirectory());
-            SetOutDirectory(ConfigurationProvider.GetOutDirectory());
+            
+            // Load directories from config if they exist
+            string inDir = ConfigurationProvider.GetInDirectory();
+            if (!String.IsNullOrEmpty(inDir))
+            {
+                SetInDirectory(inDir);
+            }
+            
+            string outDir = ConfigurationProvider.GetOutDirectory();
+            if (!String.IsNullOrEmpty(outDir))
+            {
+                SetOutDirectory(outDir);
+            }
 
             this.buttonsReenablingTimer.Tick += ButtonsReenablingTimer_Tick;
         }

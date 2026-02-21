@@ -1,7 +1,5 @@
 using Dispatch.Domain;
 using Dispatch.WebAPI.Models;
-using Microsoft.AspNetCore;
-using System.IO;
 
 namespace Dispatch.WebAPI
 {
@@ -11,6 +9,9 @@ namespace Dispatch.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Initialize configuration provider
+            Domain.ConfigurationProvider.Initialize(AppContext.BaseDirectory);
+
             // Add services to the container.
 
             // v1: read & inject a custom config section.
@@ -19,7 +20,17 @@ namespace Dispatch.WebAPI
             DispatchSection? dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();  // See https://stackoverflow.com/a/70771643/3559724
             if (dispatchSection == null) return;
 
-            builder.Services.AddSingleton<IEngine>(new Engine(dispatchSection.InDirectory, dispatchSection.OutDirectory));
+            // Validate directories from configuration
+            string inDir = Domain.ConfigurationProvider.GetInDirectory();
+            string outDir = Domain.ConfigurationProvider.GetOutDirectory();
+
+            if (String.IsNullOrEmpty(inDir) || String.IsNullOrEmpty(outDir))
+            {
+                Console.Error.WriteLine("Error: InDirectory or OutDirectory from appsettings.json does not exist or is not configured.");
+                return;
+            }
+            // builder.Services.AddSingleton<IEngine>(new Engine(dispatchSection.InDirectory, dispatchSection.OutDirectory));
+            builder.Services.AddSingleton<IEngine>(new Engine(inDir, outDir));
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

@@ -19,12 +19,13 @@ namespace Dispatch.Domain
 
         public static string GetInDirectory()
         {
-            return _configuration?["Directories:InDirectory"] ?? throw new InvalidOperationException("InDirectory not configured");
+            string? inDirectory = _configuration?["Directories:InDirectory"];
+            return !String.IsNullOrEmpty(inDirectory) && Directory.Exists(inDirectory) ? inDirectory : String.Empty;
         }
-
         public static string GetOutDirectory()
         {
-            return _configuration?["Directories:OutDirectory"] ?? throw new InvalidOperationException("OutDirectory not configured");
+            string? outDirectory = _configuration?["Directories:OutDirectory"];
+            return !String.IsNullOrEmpty(outDirectory) && Directory.Exists(outDirectory) ? outDirectory : String.Empty;
         }
     }
 }
