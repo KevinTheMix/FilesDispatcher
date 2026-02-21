@@ -6,9 +6,6 @@ namespace Dispatch.GUI
     public partial class DispatchWindow : Form
     {
         #region Variables
-        public const string InDirectory = @"M:\@ Sort\# Musique";
-        public const string OutDirectory = @"M:\@ Sort\@ Very Good";
-
         private readonly Timer buttonsReenablingTimer = new() { Interval = Settings.ButtonsReleaseThrottleMilliseconds };
         private IEngine bl = null!; // See https://stackoverflow.com/a/60812813/3559724 (similar to Dart's _late_).
         bool isStarted = false;
@@ -19,9 +16,12 @@ namespace Dispatch.GUI
         {
             InitializeComponent();
 
+            // Initialize configuration
+            ConfigurationProvider.Initialize(AppContext.BaseDirectory);
+
             // Optional.
-            SetInDirectory(InDirectory);
-            SetOutDirectory(OutDirectory);
+            SetInDirectory(ConfigurationProvider.GetInDirectory());
+            SetOutDirectory(ConfigurationProvider.GetOutDirectory());
 
             this.buttonsReenablingTimer.Tick += ButtonsReenablingTimer_Tick;
         }

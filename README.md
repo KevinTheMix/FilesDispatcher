@@ -8,7 +8,7 @@ Also displays useful progress statistics:
 
 ## Changelog
 
-* 2026.02.21 = added Github worflow
+* 2026.02.21 = added Github worflow (upgraded to .NET 8 by editing .csproj, used Claude to write .github/workflows/build.yml, create a manual release from produced .zip package file)
 * 2024.10.23 = fixed Start button label not updating on first execution
 * 2024.02.09 = refactored Engine to prevent excessive I/O reads (full recursive browsing throttled every n days instead of per Windows restart/cache refresh)
 * 2023.11.05 = fixed some files that couldn't be opened because of Unicode chars in their names (by using Windows shell instead of explorer.exe in ProcessStartInfo)
