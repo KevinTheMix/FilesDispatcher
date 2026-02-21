@@ -2,8 +2,8 @@
 {
     public class DispatchSection
     {
-        public string InDirectory { get; set; }
-        public string OutDirectory { get; set; }
-        public string LocalMachineIp { get; set; }
+        public required string InDirectory { get; set; }
+        public required string OutDirectory { get; set; }
+        public required string LocalMachineIp { get; set; }
     }
 }

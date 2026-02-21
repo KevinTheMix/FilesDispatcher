@@ -1,6 +1,7 @@
 using Dispatch.Domain;
 using Dispatch.WebAPI.Models;
 using Microsoft.AspNetCore;
+using System.IO;
 
 namespace Dispatch.WebAPI
 {
@@ -15,26 +16,27 @@ namespace Dispatch.WebAPI
             // v1: read & inject a custom config section.
             //builder.Services.Configure<DispatchSection>(builder.Configuration.GetSection("Dispatch"));
             // v2: construct a BL with a custom config section, and inject it instead.
-            DispatchSection dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();  // See https://stackoverflow.com/a/70771643/3559724
+            DispatchSection? dispatchSection = builder.Configuration.GetSection("Dispatch").Get<DispatchSection>();  // See https://stackoverflow.com/a/70771643/3559724
+            if (dispatchSection == null) return;
+
             builder.Services.AddSingleton<IEngine>(new Engine(dispatchSection.InDirectory, dispatchSection.OutDirectory));
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
             // Inspired by https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-6.0
             // v1: Does not work:
-            //WebHost.CreateDefaultBuilder(args).UseUrls("http://192.168.1.6:5000");
+            //WebHost.CreateDefaultBuilder(args).UseUrls("http://192.168.1.14:5000");
             // v2: Causes error:
             //builder.Host.ConfigureWebHost((configure) =>
             //{
-            //    configure.UseUrls("http://192.168.1.6:5000");
+            //    configure.UseUrls("http://192.168.1.14:5000");
             //});
             // v3: works!
-            builder.WebHost.UseUrls("http://192.168.1.6:5000");
+            builder.WebHost.UseUrls("http://192.168.1.14:5000");
             // v4: "dynamic" IP.
-            builder.WebHost.UseUrls($"http://{dispatchSection}:5000");
+            builder.WebHost.UseUrls($"http://{dispatchSection.LocalMachineIp}:5000");
 
             var app = builder.Build();
 

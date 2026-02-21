@@ -72,7 +72,8 @@ namespace Dispatch.Domain
             this.remaininCountFilePath = Path.Combine(this.statsDirectory, Settings.RemainingCountFileName);
             CreateOnceStatsFolder();
 
-            InitializeCounts();           
+            this.Counts = ReadDatedCounts();
+            InitializeCounts();
 
             this.processStartInfo = new ProcessStartInfo
             {
@@ -147,7 +148,6 @@ namespace Dispatch.Domain
 
         private void InitializeCounts()
         {
-            this.Counts = ReadDatedCounts();
             if (!this.Counts.Any() || !this.Counts.ContainsKey(this.Today))
             {
                 this.Counts.Add(this.Today, new MoveCount());
