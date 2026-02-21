@@ -18,8 +18,6 @@ namespace Dispatch.GUI
 
             // Initialize configuration
             ConfigurationProvider.Initialize(AppContext.BaseDirectory);
-
-            // Optional.
             SetInDirectory(ConfigurationProvider.GetInDirectory());
             SetOutDirectory(ConfigurationProvider.GetOutDirectory());
 
